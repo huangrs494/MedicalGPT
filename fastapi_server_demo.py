@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-@author:XuMing(xuming624@qq.com)
-@description: api start demo
-
 usage:
 CUDA_VISIBLE_DEVICES=0 python fastapi_server_demo.py --model_type bloom --base_model bigscience/bloom-560m
 
@@ -45,7 +42,7 @@ MODEL_CLASSES = {
     "baichuan": (AutoModelForCausalLM, AutoTokenizer),
     "auto": (AutoModelForCausalLM, AutoTokenizer),
 }
-
+logger.add("logs/api_logs.log", level="INFO")  # 所有级别为INFO及以上的日志都会被记录到文件
 
 @torch.inference_mode()
 def stream_generate_answer(
@@ -92,9 +89,29 @@ def stream_generate_answer(
 
 class Item(BaseModel):
     input: str = Field(..., max_length=2048)
+    history: list = Field(..., allow_null=True)  # 添加history属性
 
 
 def main():
+    system_prompt = '''- Role: 专业的营养师，名为Leafey AI营养师
+- Background: 用户需要个性化的营养补充建议，可能面临各种健康问题。
+- Profile: Leafey AI营养师是一位专注于个性化营养建议的人工智能专家，能够根据用户的具体需求提供专业的指导和建议。
+- Skills: 营养学知识、个性化营养建议、健康问题分析。
+- Goals: 提供针对用户特定健康问题的营养建议，帮助用户改善健康状况。
+- Constrains: 建议应基于科学的研究和实践，避免提供未经验证的信息。
+- OutputFormat: 提供营养建议的文本回复，结尾包含引导用户获取更详细信息的链接。
+- Workflow:
+  1. 接收用户的健康问题描述。
+  2. 分析问题，提供针对性的营养建议。
+  3. 结尾提供获取更详细信息的链接。
+- Examples:
+  用户问题：我最近经常感到疲劳，有什么营养建议吗？
+  建议回复：根据您的情况，建议您增加富含铁和维生素B群的食物摄入，如瘦肉、绿叶蔬菜和全谷物。这些营养素有助于提高能量水平。（如需更详细的建议，点击以下链接进行了解#小程序://LEAFYE精准营养/首页/UwDTtUljdiWIkZi）
+
+  用户问题：我正在尝试减肥，需要哪些营养调整？
+  建议回复：减肥时，建议关注整体饮食平衡，增加蛋白质摄入并减少加工食品和高糖食品的摄入。同时，保持适量的运动也是关键。（如需更详细的建议，点击以下链接进行了解#小程序://LEAFYE精准营养/首页/UwDTtUljdiWIkZi）
+- Initialization: 欢迎使用Leafey AI营养师服务，我是您的个性化营养顾问。请告诉我您的健康问题，我将为您提供专业的营养建议。'''
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_type', default=None, type=str, required=True)
     parser.add_argument('--base_model', default=None, type=str, required=True)
@@ -102,7 +119,7 @@ def main():
     parser.add_argument('--tokenizer_path', default=None, type=str)
     parser.add_argument('--template_name', default="vicuna", type=str,
                         help="Prompt template name, eg: alpaca, vicuna, baichuan, chatglm2 etc.")
-    parser.add_argument('--system_prompt', default="", type=str)
+    parser.add_argument('--system_prompt', default=system_prompt, type=str)
     parser.add_argument("--repetition_penalty", default=1.0, type=float)
     parser.add_argument("--max_new_tokens", default=512, type=int)
     parser.add_argument('--resize_emb', action='store_true', help='Whether to resize model token embeddings')
@@ -170,9 +187,10 @@ def main():
     prompt_template = get_conv_template(args.template_name)
     stop_str = tokenizer.eos_token if tokenizer.eos_token else prompt_template.stop_str
 
-    def predict(sentence):
-        history = [[sentence, '']]
-        prompt = prompt_template.get_prompt(messages=history, system_prompt=args.system_prompt)
+    def predict(history, sentence):
+        # history = [[sentence, '']]
+        history_messages = history + [[sentence, ""]]
+        prompt = prompt_template.get_prompt(messages=history_messages, system_prompt=args.system_prompt)
         response = stream_generate_answer(
             model,
             tokenizer,
@@ -192,9 +210,10 @@ def main():
     @app.post('/chat')
     async def chat(item: Item):
         try:
-            response = predict(item.input)
+            response = predict(item.history, item.input)
             result_dict = {'response': response}
-            logger.debug(f"Successfully get result, q:{item.input}")
+            logger.info(f"Successfully get result, input:{item.input}")
+            logger.info(f"response:{response}")
             return result_dict
         except Exception as e:
             logger.error(e)

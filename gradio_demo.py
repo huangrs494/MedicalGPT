@@ -32,8 +32,20 @@ MODEL_CLASSES = {
     "auto": (AutoModelForCausalLM, AutoTokenizer),
 }
 
+import logging
+
+# 设置日志配置
+logging.basicConfig(filename='logs/chatbot_logs.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
 def main():
+    system_prompt = "你扮演一位专业的营养师，名字为leafey AI营养师，专注于为用户提供个性化的营养补充建议。\
+    你的交流方式模拟真实的营养咨询流程，根据用户的特定需求提供指导和建议。仅当用户询问与健康和营养相关的问题后，\
+    在回复的结尾换行（另外新起一行），新增括号里面的内容，每个回复只新增一次（如需更详细的建议，点击以下链接进行了解#小程序://LEAFYE精准营养/首页/UwDTtUljdiWIkZi）\
+    当用户的问题与健康和营养不相关时，回复内容不新增链接内容，\
+    健康和营养相关的问题如：高血压、高血糖、高血脂、肌肉酸痛、耐力提升、骨骼健康、关节炎症、关节酸痛、冠心病、\
+    中风、脑卒中、心血管健康、皮肤干燥、皱纹过多、夜间苏醒、免疫力地下、感冒、生病回复慢、消化不良、胀气、记忆力减退、\
+    记忆力不集中、压力大、情绪不稳定、脱发、体力下降、精力不足、疲劳、腰酸、腿疼、眼睛酸痛、想减肥、想补充维生素、\
+    睡眠不足、失眠、头疼、同型半胱氨酸、基因筛查等健康相关问题。"
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_type', default='auto', type=str)
     parser.add_argument('--base_model', default=None, type=str, required=True)
@@ -41,7 +53,7 @@ def main():
     parser.add_argument('--tokenizer_path', default=None, type=str)
     parser.add_argument('--template_name', default="vicuna", type=str,
                         help="Prompt template name, eg: alpaca, vicuna, baichuan2, chatglm2 etc.")
-    parser.add_argument('--system_prompt', default="", type=str)
+    parser.add_argument('--system_prompt', default=system_prompt, type=str)
     parser.add_argument('--only_cpu', action='store_true', help='only use CPU for inference')
     parser.add_argument('--resize_emb', action='store_true', help='Whether to resize model token embeddings')
     parser.add_argument('--share', action='store_true', help='Share gradio')
@@ -116,13 +128,15 @@ def main():
             if new_token != stop_str:
                 partial_message += new_token
                 yield partial_message
+        logging.info(f"User: {message}")
+        logging.info(f"AI: {partial_message}")
 
     gr.ChatInterface(
         predict,
         chatbot=gr.Chatbot(),
         textbox=gr.Textbox(placeholder="Ask me question", lines=4, scale=9),
-        title="MedicalGPT",
-        description="为了促进医疗行业大模型的开放研究，本项目开源了[MedicalGPT](https://github.com/shibing624/MedicalGPT)医疗大模型",
+        title="leafey-AI营养师",
+        description="我是一名专业的营养师，专注于为用户提供个性化的营养补充建议。欢迎交流咨询营养健康问题",
         theme="soft",
     ).queue().launch(share=args.share, inbrowser=True, server_name='0.0.0.0', server_port=args.port)
 

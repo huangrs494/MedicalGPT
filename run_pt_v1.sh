@@ -1,8 +1,8 @@
-torchrun --nproc_per_node 1 pretraining.py \
-    --model_type auto \
-    --model_name_or_path Qwen/Qwen1.5-0.5B-Chat \
-    --train_file_dir ./data/pretrain \
-    --validation_file_dir ./data/pretrain \
+python pretraining.py \
+    --model_type bloom \
+    --model_name_or_path /root/.cache/modelscope/hub/AI-ModelScope/bloomz-7b1 \
+    --train_file_dir ./data/pretrain_v1 \
+    --validation_file_dir ./data/pretrain_v1 \
     --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 4 \
     --do_train \
@@ -11,7 +11,7 @@ torchrun --nproc_per_node 1 pretraining.py \
     --seed 42 \
     --max_train_samples 10000 \
     --max_eval_samples 10 \
-    --num_train_epochs 0.5 \
+    --num_train_epochs 8 \
     --learning_rate 2e-4 \
     --warmup_ratio 0.05 \
     --weight_decay 0.01 \
@@ -26,13 +26,13 @@ torchrun --nproc_per_node 1 pretraining.py \
     --preprocessing_num_workers 10 \
     --block_size 512 \
     --group_by_length True \
-    --output_dir outputs-pt-qwen-v1 \
+    --output_dir models/output/outputs-pt-bloomz-7b1-v1 \
     --overwrite_output_dir \
     --ddp_timeout 30000 \
     --logging_first_step True \
     --target_modules all \
-    --lora_rank 8 \
-    --lora_alpha 16 \
+    --lora_rank 12 \
+    --lora_alpha 24 \
     --lora_dropout 0.05 \
     --torch_dtype bfloat16 \
     --bf16 \

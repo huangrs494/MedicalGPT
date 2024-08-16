@@ -1,0 +1,1 @@
+python gradio_demo.py --model_type auto --base_model /root/.cache/modelscope/hub/qwen/Qwen2-7B-Instruct --tokenizer_path /root/.cache/modelscope/hub/qwen/Qwen2-7B-Instruct --template_name qwen --port 8008

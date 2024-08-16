@@ -1,20 +1,21 @@
-torchrun --nproc_per_node 1 pretraining.py \
-    --model_type auto \
-    --model_name_or_path Qwen/Qwen1.5-0.5B-Chat \
-    --train_file_dir ./data/pretrain \
-    --validation_file_dir ./data/pretrain \
+python supervised_finetuning.py \
+    --model_type bloom \
+    --model_name_or_path models/merged/merged-pt-bloomz-7b1-v1 \
+    --train_file_dir ./data/finetune_v1 \
+    --validation_file_dir ./data/finetune_v1 \
     --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 4 \
     --do_train \
     --do_eval \
+    --template_name vicuna \
     --use_peft True \
-    --seed 42 \
-    --max_train_samples 10000 \
+    --max_train_samples 1000 \
     --max_eval_samples 10 \
-    --num_train_epochs 0.5 \
-    --learning_rate 2e-4 \
+    --model_max_length 4096 \
+    --num_train_epochs 8 \
+    --learning_rate 2e-5 \
     --warmup_ratio 0.05 \
-    --weight_decay 0.01 \
+    --weight_decay 0.05 \
     --logging_strategy steps \
     --logging_steps 10 \
     --eval_steps 50 \
@@ -23,10 +24,8 @@ torchrun --nproc_per_node 1 pretraining.py \
     --save_strategy steps \
     --save_total_limit 13 \
     --gradient_accumulation_steps 1 \
-    --preprocessing_num_workers 10 \
-    --block_size 512 \
-    --group_by_length True \
-    --output_dir outputs-pt-qwen-v1 \
+    --preprocessing_num_workers 4 \
+    --output_dir models/output/outputs-sft-bloomz-7b1-v1 \
     --overwrite_output_dir \
     --ddp_timeout 30000 \
     --logging_first_step True \
@@ -34,8 +33,8 @@ torchrun --nproc_per_node 1 pretraining.py \
     --lora_rank 8 \
     --lora_alpha 16 \
     --lora_dropout 0.05 \
-    --torch_dtype bfloat16 \
-    --bf16 \
+    --torch_dtype float16 \
+    --fp16 \
     --device_map auto \
     --report_to tensorboard \
     --ddp_find_unused_parameters False \

@@ -1,0 +1,2 @@
+python merge_peft_adapter.py --model_type bloom \
+    --base_model  models/merged/merged-pt-bloomz-7b1-v1 --lora_model models/output/outputs-sft-bloomz-7b1-v1 --output_dir models/merged/merged-sft-bloomz-7b1-v1

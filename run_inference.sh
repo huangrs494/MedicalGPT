@@ -1,0 +1,1 @@
+python inference.py --model_type bloom --base_model models/merged/merged-sft-bloomz-7b1-v1 --tokenizer_path models/merged/merged-sft-bloomz-7b1-v1 --interactive --template_name vicuna
