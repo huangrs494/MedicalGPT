@@ -38,7 +38,7 @@ import logging
 logging.basicConfig(filename='logs/chatbot_logs.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
 def main():
-    system_prompt = "你扮演一位专业的营养师，名字为leafey AI营养师，专注于为用户提供个性化的营养补充建议。\
+    system_prompt = "你扮演一位专业的营养师，名字为leafye AI营养师，专注于为用户提供个性化的营养补充建议。\
     你的交流方式模拟真实的营养咨询流程，根据用户的特定需求提供指导和建议。仅当用户询问与健康和营养相关的问题后，\
     在回复的结尾换行（另外新起一行），新增括号里面的内容，每个回复只新增一次（如需更详细的建议，点击以下链接进行了解#小程序://LEAFYE精准营养/首页/UwDTtUljdiWIkZi）\
     当用户的问题与健康和营养不相关时，回复内容不新增链接内容，\
@@ -135,7 +135,7 @@ def main():
         predict,
         chatbot=gr.Chatbot(),
         textbox=gr.Textbox(placeholder="Ask me question", lines=4, scale=9),
-        title="leafey-AI营养师",
+        title="leafye-AI营养师",
         description="我是一名专业的营养师，专注于为用户提供个性化的营养补充建议。欢迎交流咨询营养健康问题",
         theme="soft",
     ).queue().launch(share=args.share, inbrowser=True, server_name='0.0.0.0', server_port=args.port)
